@@ -5,8 +5,11 @@
 // Admin account that has read/write access to all sheets
 User("admin", "sdf32rdsaSAF#24asdf", ALL);
 
-// User account that can add entried to the "transactions" sheet
+// User account that can add entries to the "transactions" sheet
 // User("user", "Passw0rd!", { transactions: POST });
+
+// User account that can add entries to the "transactions" sheet and read from "summary"
+User("user", "Passw0rd!", { transactions: POST, summary: GET });
 
 // Anonymous account that has read access to a specified sheet
 // User("anonymous", UNSAFE(""), { transactions: GET });
@@ -32,65 +35,89 @@ function data(status, data = undefined, params = {}) {
   return { status, ...params, data };
 }
 
-function get(sheet, rowIndex, params) {
+function get(sheet, _id, params) {
   const lastColumn = sheet.getLastColumn();
-  const lastRow = sheet.getLastRow();
-  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  const headers = sheet
+    .getRange(1, 1, 1, lastColumn)
+    .getValues()[0]
+    .filter(x => x !== "");
 
-  if (lastRow === 1) {
-    return data(200, [], {
-      total: 0,
-      deletedOnPage: 0
-    });
-  }
-
-  const mapRowToObject = (row, rowIndex) => {
+  const mapRowToObject = (row, _id) => {
     const isEmpty = headers.every((_, i) => row[i] === "" || row[i] == null);
     if (isEmpty) {
       return null;
     }
 
-    const result = { _id: rowIndex };
+    const result = { _id };
     for (let i = 0; i < headers.length; i++) {
       result[headers[i]] = row[i];
     }
     return result;
   };
 
-  if (rowIndex != null) {
-    const rowData = sheet.getRange(rowIndex, 1, 1, lastColumn).getValues()[0];
-    const result = mapRowToObject(rowData, rowIndex);
+  if (_id != null) {
+    // Single row
+    const rowData = sheet.getRange(_id, 1, 1, lastColumn).getValues()[0];
+    const result = mapRowToObject(rowData, _id);
 
     if (!result) {
-      return error(404, "row_not_found", { rowIndex });
+      return error(404, "row_not_found", { _id });
     }
 
     return data(200, result);
   } else {
-    const page = +params.page || 0;
-    const pageSize = +params.pageSize || 100;
+    // multiple rows
+    const firstRow = 2;
+    const lastRow = sheet.getLastRow();
+    const total = Math.max(lastRow - firstRow + 1, 0);
+    const limit = params.limit != null ? +params.limit : total;
 
-    const firstPageRow = Math.min(2 + page * pageSize, lastRow);
-    const lastPageRow = Math.min(firstPageRow + pageSize - 1, lastRow);
+    const isAsc =
+      typeof params.order !== "string" || params.order.toLowerCase() !== "desc";
 
-    const rows = sheet
-      .getRange(firstPageRow, 1, 1 + lastPageRow - firstPageRow, lastColumn)
-      .getValues()
-      .map((item, index) => mapRowToObject(item, firstPageRow + index));
+    if (isNaN(limit) || limit < 0) {
+      return error(404, "invalid_limit", { limit });
+    }
 
-    return data(200, rows.filter(x => x), {
-      total: lastRow - 1,
-      deletedOnPage: rows.filter(x => !x).length,
-      firstPageRowIndex: firstPageRow,
-      lastPageRowIndex: lastPageRow,
-      pageSize
-    });
+    let firstPageRow = isAsc ? firstRow : lastRow - limit + 1;
+    if (params.start_id != null) {
+      const start_id = +params.start_id;
+
+      if (start_id < firstRow || start_id > lastRow) {
+        return error(404, "start_id_out_of_range", { start_id });
+      }
+
+      firstPageRow = start_id - (isAsc ? 0 : limit - 1);
+    }
+
+    const lastPageRow = Math.min(firstPageRow + limit - 1, lastRow);
+    firstPageRow = Math.max(firstPageRow, firstRow);
+
+    let rows = [];
+    if (firstPageRow <= lastPageRow) {
+      rows = sheet
+        .getRange(firstPageRow, 1, lastPageRow - firstPageRow + 1, lastColumn)
+        .getValues()
+        .map((item, index) => mapRowToObject(item, firstPageRow + index));
+    }
+
+    if (!isAsc) {
+      rows.reverse();
+    }
+
+    let next = isAsc ? lastPageRow + 1 : firstPageRow - 1;
+    if (next < firstRow || next > lastRow) next = undefined;
+
+    return data(200, rows.filter(x => x), { next });
   }
 }
 
 function post(sheet: Sheet, payload: any) {
   const lastColumn = sheet.getLastColumn();
-  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  const headers = sheet
+    .getRange(1, 1, 1, lastColumn)
+    .getValues()[0]
+    .filter(x => x != "");
 
   const row = headers.map(column =>
     payload[column] === undefined ? "" : payload[column]
@@ -100,23 +127,26 @@ function post(sheet: Sheet, payload: any) {
   return data(201);
 }
 
-function del(sheet: Sheet, rowIndex: number) {
-  sheet.getRange(`${rowIndex}:${rowIndex}`).setValue("");
+function del(sheet: Sheet, _id: number) {
+  sheet.getRange(`${_id}:${_id}`).setValue("");
   return data(204);
 }
 
-function put(sheet: Sheet, rowIndex: number, payload: any) {
-  if (rowIndex == null) {
-    return error(400, "row_index_missing", {});
+function put(sheet: Sheet, _id: number, payload: any) {
+  if (_id == null) {
+    return error(400, "row_id_missing", {});
   }
 
   const lastColumn = sheet.getLastColumn();
-  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  const headers = sheet
+    .getRange(1, 1, 1, lastColumn)
+    .getValues()[0]
+    .filter(x => x != "");
 
   const row = headers.map(column =>
     payload[column] === undefined ? "" : payload[column]
   );
-  sheet.getRange(rowIndex, 1, 1, lastColumn).setValues([row]);
+  sheet.getRange(_id, 1, 1, lastColumn).setValues([row]);
   return data(201);
 }
 
@@ -134,7 +164,7 @@ function handleRequest(params) {
   }
 
   const sheetName = (result[1] || "").toLowerCase();
-  const rowIndex = result[3] == null ? null : +result[3];
+  const _id = result[3] == null ? null : +result[3];
   const method = (params["method"] || "GET").toUpperCase();
   const key = params.key || "";
 
@@ -157,21 +187,21 @@ function handleRequest(params) {
     return error(404, "sheet_not_found", { sheet: sheetName });
   }
 
-  if (rowIndex != null && rowIndex <= 1) {
-    return error(400, "row_index_invalid", { rowIndex });
+  if (_id != null && _id <= 1) {
+    return error(400, "row_index_invalid", { _id });
   }
 
   const payload = params["payload"];
 
   switch (method) {
     case "GET":
-      return get(sheet, rowIndex, params);
+      return get(sheet, _id, params);
     case "POST":
       return post(sheet, payload);
     case "PUT":
-      return put(sheet, rowIndex, payload);
+      return put(sheet, _id, payload);
     case "DELETE":
-      return del(sheet, rowIndex);
+      return del(sheet, _id);
     default:
       return error(404, "unknown_method", { method });
   }
