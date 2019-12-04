@@ -9,6 +9,12 @@ Learn more at [spreadapi.com](https://spreadapi.com).
 
 Full source code can be found [here](./spread-api.js).
 
+### Contributing
+
+Feel free to create pull requests. The [source code](./spread-api.js) 
+does not require any transpilation nor build steps. You can edit it
+directly in Google Apps Script editor. 
+
 ### License
 MIT
 
