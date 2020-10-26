@@ -304,7 +304,15 @@ function getPermissions(user, spreadsheet) {
   if (Array.isArray(user.permissions)) return user.permissions;
   if (typeof user.permissions === "function") return user.permissions;
 
-  return user.permissions[spreadsheet] || user.permissions["ALL"];
+  const keys = Object.keys(user.permissions);
+  
+  for(var i = 0; i < keys.length; i++) {
+    if(keys[i].toLowerCase() === spreadsheet.toLowerCase()) {
+      return user.permissions[keys[i]];
+    }
+  }
+  
+  return user.permissions["ALL"];
 }
 
 function hasAccess(key, spreadsheet, method) {
