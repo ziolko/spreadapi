@@ -290,7 +290,7 @@ function getUserWithKey(key) {
 
 function isStrongKey(key) {
   const strongKeyRegex = new RegExp(
-    "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})"
+    "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[\x20-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E])(?=.{8,})"
   );
   const user = getUserWithKey(key);
 
