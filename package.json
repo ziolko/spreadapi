@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "terser -c -o spread-api.min.js -- spread-api.js"
+    "build": "mkdir -p build && terser -c -o build/spread-api.min.js -- spread-api.js"
   },
   "dependencies": {
     "terser": "^5.3.8"
