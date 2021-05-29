@@ -175,10 +175,18 @@ function handleGetMultipleRows(sheet, params) {
   return data(200, rows.filter(isTruthy), { next: next });
 }
 
+const appendRow = (sheet, row) => {
+  const mapped = mapObjectToRow(row, getHeaders(sheet));
+  sheet.appendRow(mapped);
+};
+
 function handlePost(sheet, payload) {
-  const row = mapObjectToRow(payload, getHeaders(sheet));
-  sheet.appendRow(row);
-  return data(201);
+  let rows = payload;
+  if (!Array.isArray(payload)) {
+    rows = [payload];
+  }
+  rows.forEach((row) => appendRow(sheet, row));
+  return data(201)
 }
 
 function handlePut(sheet, _id, payload) {
