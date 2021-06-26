@@ -15,6 +15,12 @@ Feel free to create pull requests. The [source code](./spread-api.js)
 does not require any transpilation nor build steps. You can edit it
 directly in Google Apps Script editor. 
 
+### Sponsors
+
+SpreadAPI is maintained by the author of [Roombelt](https://roombelt.com) - a simple and reliable meeting room display system.
+
+If you want to support SpreadAPI try [Roombelt](https://roombelt.com) in your company!
+
 ### License
 MIT
 
