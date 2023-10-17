@@ -186,8 +186,14 @@ function handlePut(sheet, _id, payload) {
     return error(400, "row_id_missing", {});
   }
 
-  const row = mapObjectToRow(payload, getHeaders(sheet));
-  sheet.getRange(_id, 1, 1, row.length).setValues([row]);
+  const headers = getHeaders(sheet);
+  for (const [key, value] of Object.entries(payload)) {
+    const idx = headers.findIndex(h => h===key);
+    if(idx===-1) continue;
+
+    sheet.getRange(_id, idx+1, 1).setValue(value);  
+  }
+  
   return data(201);
 }
 
