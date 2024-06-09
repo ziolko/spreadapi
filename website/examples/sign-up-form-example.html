@@ -1,24 +1,3 @@
-# Sign-up form
-
-You can create newsletter sign-up in a few minutes with SpreadAPI. In this tutorial we will create a simple sign-up form with only an email field.
-
-This example shows how to create a simple newsletter sign-up form in just a few minutes using SpreadAPI, allowing users to register their email with a single field.
-
-![The sign-up form that we will create in this tutorial](<../.gitbook/assets/image (20).png>)
-
-First, create a Google Sheet like the one below. It's just a single sheet called _emails_ with a single column _email_.
-
-![](<../.gitbook/assets/image (18).png>)
-
-Next, follow the [setup instructions](../setup.md) to configure API for your spreadsheet. While configuring authentication add the following line to the script so that everybody can add an entry to the `emails` sheet.
-
-```javascript
-User("anonymous", UNSAFE(""), { emails: POST });
-```
-
-Now you can now create your site with an HTML form. The code below is a good self-contained starting point, using Bulma CSS and jQuery. I added a nice confirmation message shown after signing up.
-
-```html
 <!DOCTYPE html>
 <html>
   <head>
@@ -125,6 +104,3 @@ Now you can now create your site with an HTML form. The code below is a good sel
     </script>
   </body>
 </html>
-```
-
-That's it. Now your users can sign up to the newsletter and you will add their emails on Google Sheets!
