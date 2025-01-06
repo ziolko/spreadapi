@@ -60,11 +60,11 @@ Return list of rows. Empty rows are skipped. Each row has an _\_id_ field which 
 
 Adds a row to the end of sheet. To add multiple rows pass an array of objects e.g.:
 
-```
+```json
 [ 
-    { method: 'POST', sheet: 'users', payload: { Name": "Adam" } },
-    { method: 'POST', sheet: 'users', payload: { Name": "John" } },
-    { method: 'POST', sheet: 'users', payload: { Name": "Alex" } }
+    { "method": "POST", "sheet": "users", "payload": { "Name": "Adam" } },
+    { "method": "POST", "sheet": "users", "payload": { "Name": "John" } },
+    { "method": "POST", "sheet": "users", "payload": { "Name": "Alex" } }
 ]
 ```
 
@@ -90,11 +90,11 @@ Adds a row to the end of sheet. To add multiple rows pass an array of objects e.
 
 Update content of a single row. To update multiple rows pass an array of objects e.g.:
 
-```
+```json
 [ 
-    { method: 'PUT', sheet: 'users', payload: { id: 2, Name": "Adam" } },
-    { method: 'PUT', sheet: 'users', payload: { id: 10, Name": "John" } },
-    { method: 'PUT', sheet: 'users', payload: { id: 5, Name": "Alex" } }
+    { "method": "PUT", "sheet": "users", "payload": { "id": 2, "Name": "Adam" } },
+    { "method": "PUT", "sheet": "users", "payload": { "id": 10, "Name": "John" } },
+    { "method": "PUT", "sheet": "users", "payload": { "id": 5, "Name": "Alex" } }
 ]
 ```
 
@@ -123,11 +123,11 @@ Clear a single row. Notice, that the row is not physically removed so that ids o
 
 To remove multiple rows pass an array of objects e.g.:
 
-```
+```json
 [ 
-    { method: 'DELETE', sheet: 'users', id: 2 },
-    { method: 'DELETE', sheet: 'users', id: 10 },
-    { method: 'DELETE', sheet: 'users', id: 5 }
+    { "method": "DELETE", "sheet": "users", "id": 2 },
+    { "method": "DELETE", "sheet": "users", "id": 10 },
+    { "method": "DELETE", "sheet": "users", "id": 5 }
 ]
 ```
 
